@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+	<head>
+		<meta charset="UTF-8">
+		<title>贪吃蛇</title>
+		<style type="text/css">
+		   #wrap2 {
+		  	   width: 100%;
+			}
+			.wrap1 {
+				width: 600px;
+				height:50px;
+				margin: 20px auto;
+				position: relative;
+				text-align: center;
+			}
+			
+			#wrap {
+				position: relative;
+				text-align: center;
+			}
+			
+			.start {
+				display: inline-block;
+				width: 100px;
+				height: 50px;
+				border-radius: 20px;
+				background: cornflowerblue;
+				line-height: 50px;
+				cursor: pointer;
+				position: absolute;
+				left: 50px;
+				top: 0 ;
+			}
+			
+			.score {
+				margin-left: 60px;
+				display: inline-block;
+				width: 100px;
+				height: 50px;
+				border-radius: 20px;
+				background: lightgoldenrodyellow;
+				line-height: 50px;
+				position: absolute;
+				right:50px;
+				top: 0 ;
+			}
+			
+			.over {
+				width: 300px;
+				height: 200px;
+				position: absolute;
+				top: 200px;
+				left: 170px;
+				border: 1px solid yellow;
+				border-radius: 20px;
+				z-index: 10;
+				display: none;
+			}
+			
+			.gameover {
+				margin: 30px 0;
+				font-size: 2rem;
+				/*color:white;*/
+			}
+			
+			.gamerest {
+				margin: 30px 0;
+				font-size: 2rem;
+				cursor: pointer;
+			}
+			
+			.overscore {
+				font-size: 1rem;
+				/*color:white;*/
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="wrap2">
+			<div class="wrap1">
+				<div class="start">游戏开始</div>
+				<div class="score">分数: 0 </div>
+			</div>
+		</div>
+		<div id="wrap">
+			<div class="over">
+				<div class="gameover">游戏结束</div>
+				<div class="gamerest">重新开始</div>
+				<div class="overscore">得分: 0</div>
+			</div>
+		</div>
+	</body>
+	<script src='jQuery/jquery-3.2.1.js'></script>
+	<script>
+		var wrap = $('#wrap'); //获取wrap
+		var arrx = []; //列
+		var arry = []; //行
+		var colNum = 15; //列数
+		var rowNum = 15; //行数
+		var itemWidth = 40; //单元格宽
+		var itemHeight = 40; //单元格高
+		var index = 2; //刚开始蛇头位置
+		var index1 = 0;
+		//利用二维数组创建方格子
+		for(var i = 0; i < rowNum; i++) {
+			//外层循环代表行，内层循环代表列
+			arrx = []; //清空数组，为了生成每行的列数一样
+			for(var j = 0; j < colNum; j++) {
+				var newDiv = $('<div></div>'); //创建一个div
+				arrx.push(newDiv); //往列的数组里添加元素
+				wrap.append(newDiv); //给wrap添加元素div
+				newDiv.css({ //为新创建建的div设置样式
+					'width': itemWidth + 'px', //设置宽
+					'height': itemHeight + 'px', //设置高
+					'background-color': 'paleturquoise', //设置背景
+					'border': '1px solid black', //设置border
+					'display': 'inline-block' //设置display属性，让div同行排列
+				});
+				wrap.css({
+					'width': (itemWidth + 2) * colNum + 'px', //设置大容器wrap的宽
+					'font-size': '0', //清除间隙
+					'margin': '0 auto' //让大容器左右居中
+				});
+			}
+			arry.push(arrx); //向表示行的数组里添加元素	
+		}
+		console.log(arry)
+			//创建蛇
+		var snake = []; //创建蛇数组
+
+		function snakeFn() {
+
+			for(var j = 0; j < 3; j++) {
+				var snake1 = $(arry[0][j]).css({
+					'background-color': 'mistyrose'
+				});
+
+				snake.push(snake1);
+			}
+		}
+
+		var timer; //计时器
+		var direction = 'right';
+		var flag = 1;//开关
+		//蛇移动
+		function move() {
+			$(document).keydown(function() {
+				var e = window.event || event;
+				if(flag == 0){
+					return;
+				}
+				//屏蔽蛇反向动
+				if(direction == 'right' && e.keyCode == 37) {
+					return;
+				}
+				if(direction == 'left' && e.keyCode == 39) {
+					return;
+				}
+				if(direction == 'up' && e.keyCode == 40) {
+					return;
+				}
+				if(direction == 'down' && e.keyCode == 38) {
+					return;
+				}
+				  flag = 0;
+				//根据键值选择运动的方向
+				switch(e.keyCode) {
+					case 37:
+						return direction = 'left';
+						break;
+					case 38:
+						return direction = 'up';
+						break;
+					case 39:
+						return direction = 'right';
+						break;
+					case 40:
+						return direction = 'down';
+						break;
+				}
+			});
+					//创建计时器
+			timer = setInterval(function() {
+				flag = 1;
+
+				if(direction == 'right') {
+					index++;
+
+				}
+				if(direction == 'left') {
+					index--;
+
+				}
+				if(direction == 'up') {
+					index1--;
+
+				}
+				if(direction == 'down') {
+					index1++;
+				}
+
+				if(index == 15 || index < 0 || index1 == 15 || index1 < 0) {
+					console.log(0);
+					gameover()
+					clearInterval(timer);
+					return;
+				}
+				bump();
+				eatFood();
+
+			}, 300);
+		
+
+		}
+
+		//蛇移动改变位置的函数
+		function localFn() {
+			console.log(index);
+			arry[index1][index].css('background-color', 'mistyrose');
+			snake.push(arry[index1][index]); //蛇头相当于蛇数组的尾部（所以此处用尾部添加）
+			$(snake[0]).css('background-color', 'paleturquoise'); //让蛇的尾部改变颜色
+			snake.shift(); //蛇的尾部删除（蛇数组的头部删除）
+		}
+		//创建随机函数
+		function randomNum(x, y) {
+			return Math.round(Math.random() * (y - x) + x);
+		}
+		var food1; //食物所在的列
+		var food2; //食物的所在的行
+		//创建食物的函数
+		function foodFn() {
+			food1 = randomNum(0, rowNum - 1);
+			food2 = randomNum(0, colNum - 1);
+			console.log(arry[food1][food2].css('background-color'));
+			if(arry[food1][food2].css('background-color') == 'rgb(255, 228, 225)') {
+				foodFn();
+			} else {
+				arry[food1][food2].css('background-color', 'red');
+			}
+		}
+
+		//吃食物
+		var score = 0;
+
+		function eatFood() {
+			//判断食物出现的位置与蛇头位置是否相等
+			if(food1 == index1 && food2 == index) {
+				//判断相等，就代表蛇吃了食物，就应让蛇长长；
+				$(arry[index1][index]).css('background-color', 'rgb(255, 228, 225)');
+				snake.push(arry[food1][food2]);
+				score++;
+				$('.score').text('分数:' + score);
+				foodFn();
+			} else {
+				localFn(); //不相等，蛇移动
+			}
+		}
+		//碰撞
+		function bump() {
+			for(var i = 0; i < snake.length - 1; i++) {
+				//蛇自身是否相撞
+				if(arry[index1][index] == snake[i]) {
+					console.log('死了');
+					gameover();
+					clearInterval(timer); //清除计时器
+				}
+			}
+
+		}
+		//游戏结束
+		function gameover() {
+			$('.over').css('display', 'block');
+			$('.overscore').text('得分:' + score);
+			$('.gamerest').click(function() {
+				$('.over').css('display', 'none');
+				$('.start').css('display', 'block');
+				score = 0;
+				$('.overscore').text('得分: 0'); //清空得分
+				$('.score').text('分数: 0'); //清空分数
+				//先让蛇的颜色变为格子的颜色
+				for(var i = 0; i < snake.length; i++) {
+					snake[i].css('background-color', 'paleturquoise');
+				}
+				arry[food1][food2].css('background-color', 'paleturquoise'); //清空食物
+				snake = []; //再清空蛇数组
+				index = 2; //刚开始蛇头位置
+				index1 = 0;
+				direction = 'right'; //重置蛇开始方向
+				console.log(snake);
+			});
+
+		}
+		//开始游戏
+		function start() {
+			$('.start').click(function() {
+				$('.start').css('display', 'none');
+				foodFn(); //重新生成食物
+				snakeFn(); //重新生成蛇
+				console.log(snake);
+				move(); //蛇移动
+			});
+		}
+		start();
+	</script>
+
+</html>
